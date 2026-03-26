@@ -367,7 +367,7 @@
     "@parcel/watcher-win32-ia32" "2.5.6"
     "@parcel/watcher-win32-x64" "2.5.6"
 
-"@prisma/client@^6.4.1":
+"@prisma/client@^6.19.2", "@prisma/client@^6.4.1":
   version "6.19.2"
   resolved "https://registry.npmjs.org/@prisma/client/-/client-6.19.2.tgz"
   integrity sha512-gR2EMvfK/aTxsuooaDA32D8v+us/8AAet+C3J1cc04SW35FPdZYgLF+iN4NDLUgAaUGTKdAB0CYenu1TAgGdMg==
