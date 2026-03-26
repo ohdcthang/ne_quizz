@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Quiz {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  questions   Question[]
+  sessions    Session[]
+}
+
+model Question {
+  id            String     @id @default(cuid())
+  text          String
+  imageUrl      String?
+  type          String     @default("MULTIPLE_CHOICE") // MULTIPLE_CHOICE, ESSAY
+  correctAnswer String?    // Used for essay auto-grading (optional)
+  timeLimit     Int        @default(20) // seconds
+  points        Int        @default(1000)
+  quizId        String
+  quiz          Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options       Option[]
+  responses     Response[]
+  order         Int        @default(0)
+}
+
+model Option {
+  id         String     @id @default(cuid())
+  text       String
+  isCorrect  Boolean    @default(false)
+  questionId String
+  question   Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  responses  Response[]
+}
+
+model Session {
+  id                  String   @id @default(cuid())
+  pin                 String   @unique
+  status              String   @default("LOBBY") // LOBBY, PLAYING, FINISHED
+  currentQuestionIndex Int      @default(-1)
+  quizId              String
+  quiz                Quiz     @relation(fields: [quizId], references: [id])
+  players             Player[]
+  createdAt           DateTime @default(now())
+}
+
+model Player {
+  id        String     @id @default(cuid())
+  name      String
+  score     Int        @default(0)
+  sessionId String
+  session   Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  responses Response[]
+  joinedAt  DateTime   @default(now())
+}
+
+model Response {
+  id         String   @id @default(cuid())
+  playerId   String
+  player     Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionId   String?
+  option     Option?  @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  textAnswer String?
+  timeTaken  Int      @default(0) // milliseconds
+  isCorrect  Boolean  @default(false)
+  score      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@unique([playerId, questionId])
+}
