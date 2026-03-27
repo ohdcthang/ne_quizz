@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { startSession, finishSession, adjustPlayerScore } from "../../../actions";
+import MarkdownRenderer from "../../../../components/MarkdownRenderer";
 // @ts-ignore
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
@@ -251,7 +252,9 @@ export function HostGame({ pin, initialSession }: { pin: string; initialSession:
                                         return (
                                             <div key={q.id} className="flex justify-between items-center text-sm bg-white/5 border border-white/10 p-4 rounded-xl">
                                                 <div className="text-left">
-                                                    <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-1">{q.text}</div>
+                                                    <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-1">
+                                                       <MarkdownRenderer content={q.text} className="prose-p:mb-0" />
+                                                    </div>
                                                     <div className={resp?.isCorrect ? "text-emerald-400 font-bold" : "text-red-400 font-bold opacity-60"}>
                                                         {resp?.isCorrect ? "Correct" : "Incorrect"}
                                                     </div>

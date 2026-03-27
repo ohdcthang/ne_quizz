@@ -2,6 +2,7 @@ import prisma from "@repo/database";
 import { createSession } from "../../../actions";
 import QuestionForm from "./QuestionForm";
 import Link from "next/link";
+import MarkdownRenderer from "../../../../components/MarkdownRenderer";
 import { notFound } from "next/navigation";
 
 export default async function QuizDetailPage({
@@ -87,7 +88,7 @@ export default async function QuizDetailPage({
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <h3 className="text-2xl font-black text-zinc-900 group-hover:text-indigo-600 transition-colors dark:text-zinc-50 dark:group-hover:text-indigo-400 leading-tight">
-                          {question.text}
+                          <MarkdownRenderer content={question.text} className="prose-p:mb-0" />
                         </h3>
                         <div className="flex items-center gap-3 text-xs font-bold text-zinc-400 uppercase tracking-widest mt-2">
                           <span className="flex items-center gap-1.5 bg-zinc-100 px-3 py-1 rounded-full dark:bg-zinc-800">

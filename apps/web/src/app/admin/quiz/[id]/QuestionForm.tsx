@@ -1,7 +1,8 @@
 "use client";
 
-import { useTransition, useRef } from "react";
+import { useTransition, useRef, useState } from "react";
 import { addQuestion } from "../../../actions";
+import MarkdownRenderer from "../../../../components/MarkdownRenderer";
 
 interface QuestionFormProps {
   quizId: string;
@@ -9,6 +10,7 @@ interface QuestionFormProps {
 
 export default function QuestionForm({ quizId }: QuestionFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [text, setText] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (formData: FormData) => {
@@ -18,6 +20,7 @@ export default function QuestionForm({ quizId }: QuestionFormProps) {
         alert(`Error: ${result.error}\n${result.details || ""}`);
       } else {
         formRef.current?.reset();
+        setText("");
       }
     });
   };
@@ -36,15 +39,23 @@ export default function QuestionForm({ quizId }: QuestionFormProps) {
 
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            Question Text
+            Question Text (Markdown Supported)
           </label>
-          <input
-            type="text"
+          <textarea
             name="text"
             required
-            placeholder="Ex: What is the capital of France?"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Ex: What is the output of `console.log(1 + '1')`?"
+            rows={4}
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono text-sm"
           />
+          {text && (
+            <div className="mt-4 p-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+               <span className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 block">Live Preview</span>
+               <MarkdownRenderer content={text} className="prose-sm" />
+            </div>
+          )}
         </div>
 
         <div>

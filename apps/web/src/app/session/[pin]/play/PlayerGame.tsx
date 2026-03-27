@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { submitResponse } from "../../../actions";
+import MarkdownRenderer from "../../../../components/MarkdownRenderer";
 
 interface PlayerGameProps {
   pin: string;
@@ -111,7 +112,7 @@ export function PlayerGame({ pin, player, initialSession }: PlayerGameProps) {
                     <div className="flex items-start justify-between gap-6">
                       <div className="flex-1">
                         <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-2">Question {idx + 1}</div>
-                        <p className="text-xl font-bold leading-tight mb-4">{question.text}</p>
+                        <MarkdownRenderer content={question.text} className="text-xl font-bold leading-tight mb-4 prose-p:mb-0" />
                         
                         {selectedOption ? (
                           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -196,8 +197,8 @@ export function PlayerGame({ pin, player, initialSession }: PlayerGameProps) {
       </header>
 
       <main className="flex-1 p-6 flex flex-col gap-6 max-w-2xl mx-auto w-full">
-        <div className="glass-card-accent p-10 rounded-4xl text-white text-3xl font-black leading-tight text-center glow-accent">
-           {currentQuestion.text}
+        <div className="glass-card-accent p-10 rounded-4xl text-white font-black leading-tight text-center glow-accent overflow-hidden">
+           <MarkdownRenderer content={currentQuestion.text} className="text-3xl" />
         </div>
 
         {currentQuestion.imageUrl && (
