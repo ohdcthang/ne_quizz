@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { submitResponse } from "../../../actions";
 import MarkdownRenderer from "../../../../components/MarkdownRenderer";
 
@@ -15,7 +15,9 @@ export function PlayerGame({ pin, player, initialSession }: PlayerGameProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ isCorrect: boolean; score: number } | null>(null);
   const [startTime, setStartTime] = useState<number>(Date.now());
+  const [timeLeft, setTimeLeft] = useState<number>(initialSession.quiz.questions[0]?.timeLimit || 20);
   const [isPending, startTransition] = useTransition();
+  const submittedQuestionId = useRef<string | null>(null);
 
   const me = session.players?.find((p: any) => p.id === player.id);
   const myProgress = me?.responses?.length || 0;
@@ -54,7 +56,41 @@ export function PlayerGame({ pin, player, initialSession }: PlayerGameProps) {
     return () => clearInterval(interval);
   }, [pin, session.currentQuestionIndex, session.status]);
 
-  // Removed auto-clear useEffect for lastResult
+  // Timer: Just counts down
+  useEffect(() => {
+    if (session.status !== "PLAYING" || myProgress >= session.quiz.questions.length || selectedOption || timeLeft <= 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [session.status, myProgress, selectedOption, timeLeft > 0]);
+
+  // Timeout Observer: Triggers submission once when timeLeft hits 0
+  useEffect(() => {
+    if (session.status === "PLAYING" && timeLeft === 0 && !selectedOption && !isPending) {
+      const question = session.quiz.questions[myProgress];
+      if (question && submittedQuestionId.current !== question.id) {
+         handleSelect(null);
+      }
+    }
+  }, [timeLeft]);
+
+  // Reset timer on new question
+  useEffect(() => {
+    const question = session.quiz.questions[myProgress];
+    if (question) {
+      setTimeLeft(question.timeLimit || 20);
+      setStartTime(Date.now());
+      // Re-enable submission for new question
+      if (submittedQuestionId.current !== question.id) {
+         // This reset happens when myProgress changes
+      }
+    }
+  }, [myProgress, session.currentQuestionIndex]);
 
   if (session.status === "LOBBY") {
     return (
@@ -158,20 +194,29 @@ export function PlayerGame({ pin, player, initialSession }: PlayerGameProps) {
 
   const currentQuestion = session.quiz.questions[myProgress];
 
-  const handleSelect = (optionId: string) => {
-    if (selectedOption) return;
+  const handleSelect = (optionId: string | null) => {
+    if (selectedOption || submittedQuestionId.current === currentQuestion?.id) return;
     
+    submittedQuestionId.current = currentQuestion.id;
     setLastResult(null);
     const timeTaken = Date.now() - startTime;
-    setSelectedOption(optionId);
+    setSelectedOption(optionId || "__TIMEOUT__");
     
     startTransition(async () => {
       const result = await submitResponse(player.id, currentQuestion.id, optionId, timeTaken);
       if ("error" in result) {
         console.error("Submission failed:", result.error);
+        // Allow retry on error by resetting ref? Maybe not for now to avoid loops
         return;
       }
       setLastResult(result as { isCorrect: boolean; score: number });
+      
+      // Immediately refresh session data to advance to next question
+      const res = await fetch(`/api/session/${pin}`);
+      const data = await res.json();
+      if (data && data.players) {
+        setSession(data);
+      }
     });
   };
 
@@ -184,6 +229,13 @@ export function PlayerGame({ pin, player, initialSession }: PlayerGameProps) {
               <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mb-1">Progress</div>
               <div className="text-lg font-black text-white">
                 {myProgress + 1}<span className="opacity-20 mx-1">/</span>{session.quiz.questions.length}
+              </div>
+           </div>
+           <div className="h-8 w-px bg-white/10" />
+           <div className="flex flex-col items-center justify-center min-w-[60px]">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mb-1">Time</div>
+              <div className={`text-2xl font-black italic tabular-nums ${timeLeft <= 5 ? "text-red-500 animate-pulse" : "text-amber-500"}`}>
+                {timeLeft}s
               </div>
            </div>
            <div className="h-8 w-px bg-white/10" />

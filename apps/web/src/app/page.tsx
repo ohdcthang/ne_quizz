@@ -1,5 +1,6 @@
 import { joinSession } from "./actions";
 import Image from "next/image";
+import { JoinButton } from "@/components/JoinButton";
 
 export default function Home() {
   return (
@@ -38,12 +39,7 @@ export default function Home() {
             />
           </div>
           
-          <button
-            type="submit"
-            className="premium-button w-full py-6 text-2xl font-black rounded-2xl"
-          >
-            Enter Game
-          </button>
+          <JoinButton />
         </form>
       </div>
 
